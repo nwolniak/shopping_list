@@ -1,33 +1,148 @@
 package controllers
 
-import models.Item
+import models.{Item, ShoppingList}
 import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.anyLong
+import org.mockito.ArgumentMatchers.{any, anyLong, same}
 import org.mockito.Mockito.*
+import org.scalatest.GivenWhenThen
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Play.materializer
 import play.api.libs.json.{Json, OFormat}
+import play.api.libs.ws.WSClient
+import play.api.mvc.Headers
+import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import play.api.test.{FakeRequest, Injecting}
 import services.ShoppingListService
 
-class ShoppingListControllerSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar with Injecting {
+import scala.collection.mutable.ListBuffer
 
-  implicit val itemFormatter: OFormat[Item] = Json.format[Item]
+class ShoppingListControllerSpec extends PlaySpec
+  with GuiceOneAppPerSuite
+  with MockitoSugar
+  with GivenWhenThen {
 
-  "ShoppingListController#getById" should {
+  private implicit val wsClient: WSClient = app.injector.instanceOf[WSClient]
+
+  private implicit val itemFormatter: OFormat[Item] = Json.format[Item]
+  implicit val shoppingListFormatter: OFormat[ShoppingList] = Json.format[ShoppingList]
+
+  "ShoppingListController#createShoppingList" should {
+    "create shopping list" in {
+      val shoppingListServiceMock = mock[ShoppingListService]
+      val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
+      val shoppingList = ShoppingList(1, ListBuffer[Item]())
+
+      when(shoppingListServiceMock.createEmptyShoppingList).thenReturn(shoppingList)
+
+      val result = shoppingListController.createEmptyShoppingList.apply(FakeRequest())
+
+      status(result) mustEqual OK
+      contentType(result).value mustEqual "application/json"
+      contentAsJson(result) mustEqual Json.toJson(shoppingList)
+    }
+  }
+
+  "ShoppingListController#postShoppingList" should {
+    "add shopping list" in {
+      val shoppingListServiceMock = mock[ShoppingListService]
+      val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
+      val shoppingList = ShoppingList(1, ListBuffer[Item]())
+
+      doNothing().when(shoppingListServiceMock).addShoppingList(any[ShoppingList])
+
+      val request = FakeRequest()
+        .withHeaders(CONTENT_TYPE -> "application/json")
+        .withJsonBody(Json.toJson[ShoppingList](shoppingList))
+
+      val result = shoppingListController.postShoppingList.apply(request)
+
+      status(result) mustBe OK
+    }
+  }
+
+  "ShoppingListController#getShoppingList" should {
+    "return shopping list with given id" in {
+      val shoppingListServiceMock = mock[ShoppingListService]
+      val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
+      val shoppingList = ShoppingList(1, ListBuffer[Item]())
+
+      when(shoppingListServiceMock.getShoppingList(anyLong())).thenReturn(Option(shoppingList))
+
+      val result = shoppingListController.getShoppingList(anyLong()).apply(FakeRequest())
+
+      status(result) mustBe OK
+      contentType(result).value mustBe "application/json"
+      contentAsJson(result) mustBe Json.toJson(shoppingList)
+    }
+    "return NO_CONTENT status code when there is no shopping list with given id" in {
+      val shoppingListServiceMock = mock[ShoppingListService]
+      val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
+
+      when(shoppingListServiceMock.getShoppingList(anyLong())).thenReturn(Option.empty)
+
+      val result = shoppingListController.getShoppingList(anyLong()).apply(FakeRequest())
+
+      status(result) mustBe NO_CONTENT
+    }
+  }
+
+  "ShoppingListController#getShoppingLists" should {
+    "return shopping lists" in {
+      val shoppingListServiceMock = mock[ShoppingListService]
+      val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
+      val shoppingList1 = ShoppingList(1, ListBuffer[Item]())
+      val shoppingList2 = ShoppingList(2, ListBuffer[Item]())
+      val shoppingList3 = ShoppingList(3, ListBuffer[Item]())
+
+      val shoppingLists = List[ShoppingList](shoppingList1, shoppingList2, shoppingList3)
+
+      when(shoppingListServiceMock.getShoppingLists).thenReturn(Option(shoppingLists))
+
+      val result = shoppingListController.getShoppingLists.apply(FakeRequest())
+
+      status(result) mustBe OK
+      contentType(result).value mustBe "application/json"
+      contentAsJson(result) mustBe Json.toJson(shoppingLists)
+    }
+    "return NO_CONTENT status code when there is no shopping list" in {
+      val shoppingListServiceMock = mock[ShoppingListService]
+      val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
+
+      when(shoppingListServiceMock.getShoppingLists).thenReturn(Option.empty)
+
+      val result = shoppingListController.getShoppingLists.apply(FakeRequest())
+
+      status(result) mustBe NO_CONTENT
+    }
+  }
+
+  "ShoppingListController#deleteShoppingList" should {
+    "delete shopping list with given id" in {
+      val shoppingListServiceMock = mock[ShoppingListService]
+      val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
+
+      doNothing().when(shoppingListServiceMock).deleteShoppingList(anyLong())
+
+      val result = shoppingListController.deleteShoppingList(anyLong()).apply(FakeRequest())
+
+      status(result) mustBe OK
+    }
+  }
+
+  "ShoppingListController#getItemWithinList" should {
     "return item with given id" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
       val item = Item(1, "Apple")
 
-      when(shoppingListServiceMock.getById(item.id)).thenReturn(Option(item))
+      when(shoppingListServiceMock.getItemWithinList(anyLong(), anyLong())).thenReturn(Option(item))
 
-      val result = shoppingListController.getById(item.id).apply(FakeRequest())
+      val result = shoppingListController.getItemWithinList(anyLong(), anyLong()).apply(FakeRequest())
 
       status(result) mustBe OK
-      contentType(result) mustBe Some("application/json")
+      contentType(result).value mustBe "application/json"
       contentAsJson(result) mustBe Json.toJson(item)
     }
 
@@ -35,26 +150,26 @@ class ShoppingListControllerSpec extends PlaySpec with GuiceOneAppPerSuite with 
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
 
-      when(shoppingListServiceMock.getById(anyLong())).thenReturn(Option.empty)
+      when(shoppingListServiceMock.getItemWithinList(anyLong(), anyLong())).thenReturn(Option.empty)
 
-      val result = shoppingListController.getById(anyLong()).apply(FakeRequest())
+      val result = shoppingListController.getItemWithinList(anyLong(), anyLong()).apply(FakeRequest())
 
       status(result) mustBe NO_CONTENT
     }
   }
 
-  "ShoppingListController#getAll" should {
-    "return all items" in {
+  "ShoppingListController#getItemsWithinList" should {
+    "return all items within list" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
       val itemList = List[Item](Item(1, "Apple"), Item(2, "Orange"), Item(3, "Grape"))
 
-      when(shoppingListServiceMock.getAll).thenReturn(itemList)
+      when(shoppingListServiceMock.getItemsWithinList(anyLong())).thenReturn(Option(itemList))
 
-      val result = shoppingListController.getAll.apply(FakeRequest())
+      val result = shoppingListController.getItemsWithinList(anyLong()).apply(FakeRequest())
 
       status(result) mustBe OK
-      contentType(result) mustBe Some("application/json")
+      contentType(result).value mustBe "application/json"
       contentAsJson(result) mustBe Json.toJson(itemList)
     }
 
@@ -62,36 +177,40 @@ class ShoppingListControllerSpec extends PlaySpec with GuiceOneAppPerSuite with 
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
 
-      when(shoppingListServiceMock.getAll).thenReturn(List[Item]())
+      when(shoppingListServiceMock.getItemsWithinList(anyLong())).thenReturn(Option.empty)
 
-      val result = shoppingListController.getAll.apply(FakeRequest())
+      val result = shoppingListController.getItemsWithinList(anyLong()).apply(FakeRequest())
 
       status(result) mustBe NO_CONTENT
     }
   }
 
-  "ShoppingListController#postItem" should {
-    "successfully save new item" in {
+  "ShoppingListController#postItemToList" should {
+    "add new item" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
       val item = Item(1, "Apple")
 
-      doNothing().when(shoppingListServiceMock).addItem(item)
+      doNothing().when(shoppingListServiceMock).addItemToList(anyLong(), same(item))
 
-      val result = shoppingListController.postItem(item).apply(FakeRequest())
+      val request = FakeRequest()
+        .withHeaders(Headers(CONTENT_TYPE -> "application/json"))
+        .withJsonBody(Json.toJson(item))
+
+      val result = shoppingListController.postItemToList(1).apply(request)
 
       status(result) mustBe OK
     }
   }
 
-  "ShoppingListController#deleteById" should {
+  "ShoppingListController#deleteItemInList" should {
     "successfully delete item" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
 
-      doNothing().when(shoppingListServiceMock).deleteById(anyLong())
+      doNothing().when(shoppingListServiceMock).deleteItemInList(anyLong(), anyLong())
 
-      val result = shoppingListController.deleteById(anyLong()).apply(FakeRequest())
+      val result = shoppingListController.deleteItemInList(anyLong(), anyLong()).apply(FakeRequest())
 
       status(result) mustBe OK
     }

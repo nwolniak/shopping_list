@@ -3,10 +3,20 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET           /items/:itemId        controllers.ShoppingListController.getById(itemId: Long)
+GET           /shopping-lists/create                       controllers.ShoppingListController.createEmptyShoppingList
 
-GET           /items                controllers.ShoppingListController.getAll()
+GET           /shopping-lists/:listId                      controllers.ShoppingListController.getShoppingList(listId: Long)
 
-POST          /items/:item          controllers.ShoppingListController.postItem(item: Item)
+GET           /shopping-lists                              controllers.ShoppingListController.getShoppingLists
 
-DELETE        /items/:itemId        controllers.ShoppingListController.deleteById(itemId: Long)
+GET           /shopping-lists/:listId/items/:itemId        controllers.ShoppingListController.getItemWithinList(listId: Long,itemId: Long)
+
+GET           /shopping-lists/:listId/items                controllers.ShoppingListController.getItemsWithinList(listId: Long)
+
+POST          /shopping-lists                              controllers.ShoppingListController.postShoppingList
+
+POST          /shopping-lists/:listId/items                controllers.ShoppingListController.postItemToList(listId: Long)
+
+DELETE        /shopping-lists/:listId                      controllers.ShoppingListController.deleteShoppingList(listId: Long)
+
+DELETE        /shopping-lists/:listId/items/:itemId        controllers.ShoppingListController.deleteItemInList(listId: Long, itemId: Long)
