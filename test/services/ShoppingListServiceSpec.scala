@@ -1,297 +1,316 @@
 package services
 
 import models.{Item, ShoppingList}
-import org.mockito.ArgumentMatchers.anyLong
-import org.scalatest.flatspec.AnyFlatSpec
+import org.mockito.ArgumentMatchers.{any, anyLong}
+import org.mockito.Mockito.when
+import org.scalatest.OptionValues
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.{GivenWhenThen, OptionValues}
+import org.scalatestplus.mockito.MockitoSugar
+import repositories.{ItemRepository, ShoppingListRepository}
 
-import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
-class ShoppingListServiceSpec extends AnyFlatSpec
-    with GivenWhenThen
-    with Matchers
-    with OptionValues {
+class ShoppingListServiceSpec extends AnyFunSpec
+  with Matchers
+  with ScalaFutures
+  with MockitoSugar
+  with OptionValues {
 
-  it should "allow empty shopping list to be created" in {
-    Given("not any shopping list created")
-    val shoppingListService = ShoppingListService()
+  describe("ShoppingListService#getShoppingList") {
+    it("should return a shopping list when successful") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
 
-    When("a shopping list is created")
-    val shoppingList = shoppingListService.createEmptyShoppingList
+      val expectedShoppingList = ShoppingList(Some(1))
 
-    Then("the shopping list should be empty")
-    shoppingList.items shouldBe empty
+      when(shoppingListRepository.getShoppingList(anyLong)).thenReturn(Future.successful(Success(Some(expectedShoppingList))))
 
-    And("the shopping lists should contain that list")
-    val shoppingListOpt = shoppingListService.getShoppingLists
-    shoppingListOpt.value should contain(shoppingList)
+      val result = shoppingListService.getShoppingList(anyLong)
 
-    And("there should be 1 shopping list")
-    shoppingListOpt.value should have size 1
+      whenReady(result) { actualShoppingList =>
+        actualShoppingList.value shouldBe expectedShoppingList
+      }
+    }
+
+    it("should return None when an exception is thrown") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
+
+      when(shoppingListRepository.getShoppingList(anyLong)).thenReturn(Future.successful(Failure(RuntimeException())))
+
+      val result = shoppingListService.getShoppingList(anyLong)
+
+      whenReady(result) { actualShoppingList =>
+        actualShoppingList shouldBe None
+      }
+    }
   }
 
-  it should "allow multiple shopping lists to be created" in {
-    Given("not any shopping list created")
-    val shoppingListService = ShoppingListService()
+  describe("ShoppingListService#getShoppingLists") {
+    it("should return a shopping lists when successful") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
 
-    When("multiple empty shopping lists are created")
-    val shoppingList1 = shoppingListService.createEmptyShoppingList
-    val shoppingList2 = shoppingListService.createEmptyShoppingList
-    val shoppingList3 = shoppingListService.createEmptyShoppingList
+      val expectedShoppingLists = Seq[ShoppingList](
+        ShoppingList(Some(1)),
+        ShoppingList(Some(2)),
+        ShoppingList(Some(3))
+      )
 
-    Then("shopping lists should contain created lists")
-    val shoppingListOpt = shoppingListService.getShoppingLists
-    shoppingListOpt.value should contain allOf(shoppingList1, shoppingList2, shoppingList3)
+      when(shoppingListRepository.getShoppingLists).thenReturn(Future.successful(Success(expectedShoppingLists)))
 
-    And("there should be 3 shopping lists")
-    shoppingListOpt.value should have size 3
+      val result = shoppingListService.getShoppingLists
+
+      whenReady(result) { actualShoppingLists =>
+        actualShoppingLists.value should contain allElementsOf expectedShoppingLists
+      }
+    }
+
+    it("should return None when an exception is thrown") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
+
+      when(shoppingListRepository.getShoppingLists).thenReturn(Future.successful(Failure(RuntimeException())))
+
+      val result = shoppingListService.getShoppingLists
+
+      whenReady(result) { actualShoppingLists =>
+        actualShoppingLists shouldBe None
+      }
+    }
   }
 
-  it should "allow shopping list to be added" in {
-    Given("an empty shopping list")
-    val shoppingListService = ShoppingListService()
-    val shoppingList = ShoppingList(anyLong(), ListBuffer[Item]())
+  describe("ShoppingListService#getItemWithinList") {
+    it("should return an item when successful") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
 
-    When("a shopping list is added")
-    shoppingListService.addShoppingList(shoppingList)
+      val expectedItem = Item(Some(1), "apple", 1)
 
-    Then("shopping lists should contain that list")
-    val shoppingListOpt = shoppingListService.getShoppingLists
-    shoppingListOpt.value should contain(shoppingList)
+      when(itemRepository.getItemWithinList(anyLong, anyLong)).thenReturn(Future.successful(Success(Some(expectedItem))))
 
-    And("there should be 1 shopping list")
-    shoppingListOpt.value should have size 1
+      val result = shoppingListService.getItemWithinList(anyLong, anyLong)
+
+      whenReady(result) { actualItem =>
+        actualItem.value shouldBe expectedItem
+      }
+    }
+
+    it("should return None when an exception is thrown") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
+
+      when(itemRepository.getItemWithinList(anyLong, anyLong)).thenReturn(Future.successful(Failure(RuntimeException())))
+
+      val result = shoppingListService.getItemWithinList(anyLong, anyLong)
+
+      whenReady(result) { actualItem =>
+        actualItem shouldBe None
+      }
+    }
   }
 
-  it should "allow multiple shopping lists to be added" in {
-    Given("multiple empty shopping lists")
-    val shoppingListService = ShoppingListService()
-    val shoppingList1 = ShoppingList(1, ListBuffer[Item]())
-    val shoppingList2 = ShoppingList(2, ListBuffer[Item]())
-    val shoppingList3 = ShoppingList(3, ListBuffer[Item]())
+  describe("ShoppingListService#getItemsWithinList") {
+    it("should return items when successful") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
 
-    When("shopping lists are added")
-    shoppingListService.addShoppingList(shoppingList1)
-    shoppingListService.addShoppingList(shoppingList2)
-    shoppingListService.addShoppingList(shoppingList3)
+      val expectedItems = Seq[Item](Item(Some(1), "apple", 1), Item(Some(2), "apple", 1), Item(Some(3), "apple", 1))
 
-    Then("shopping lists should contain all of the lists")
-    val shoppingListOpt = shoppingListService.getShoppingLists
-    shoppingListOpt.value should contain allOf(shoppingList1, shoppingList2, shoppingList3)
+      when(itemRepository.getItemsWithinList(anyLong)).thenReturn(Future.successful(Success(expectedItems)))
 
-    And("there should be 3 shopping list")
-    shoppingListOpt.value should have size 3
+      val result = shoppingListService.getItemsWithinList(anyLong)
+
+      whenReady(result) { actualItems =>
+        actualItems.value shouldBe expectedItems
+      }
+    }
+
+    it("should return None when an exception is thrown") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
+
+      when(itemRepository.getItemsWithinList(anyLong)).thenReturn(Future.successful(Failure(RuntimeException())))
+
+      val result = shoppingListService.getItemsWithinList(anyLong)
+
+      whenReady(result) { actualItems =>
+        actualItems shouldBe None
+      }
+    }
   }
 
-  it should "return empty option when there is no shopping list" in {
-    Given("empty shopping lists")
-    val shoppingListService = ShoppingListService()
+  describe("ShoppingListService#createShoppingList") {
+    it("should return a shopping list when successful") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
 
-    When("getting shopping lists")
-    val shoppingListOpt = shoppingListService.getShoppingLists
+      val expectedShoppingList = ShoppingList(Some(1))
 
-    Then("there should empty option as result")
-    shoppingListOpt shouldBe empty
+      when(shoppingListRepository.createShoppingList).thenReturn(Future.successful(Success(expectedShoppingList)))
+
+      val result = shoppingListService.createShoppingList
+
+      whenReady(result) { actualShoppingList =>
+        actualShoppingList.value shouldBe expectedShoppingList
+      }
+    }
+
+    it("should return None when an exception is thrown") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
+
+      when(shoppingListRepository.createShoppingList).thenReturn(Future.successful(Failure(RuntimeException())))
+
+      val result = shoppingListService.createShoppingList
+
+      whenReady(result) { actualShoppingList =>
+        actualShoppingList shouldBe None
+      }
+    }
   }
 
-  it should "return empty option when there is no searched shopping list" in {
-    Given("multiple shopping lists")
-    val shoppingListService = ShoppingListService()
-    val shoppingList1 = ShoppingList(1, ListBuffer[Item]())
-    val shoppingList2 = ShoppingList(2, ListBuffer[Item]())
-    val shoppingList3 = ShoppingList(3, ListBuffer[Item]())
-    shoppingListService.addShoppingList(shoppingList1)
-    shoppingListService.addShoppingList(shoppingList2)
+  describe("ShoppingListService#addShoppingList") {
+    it("should return a shopping list when successful") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
 
-    val shoppingListNotExisting = shoppingList3
+      val expectedShoppingList = ShoppingList(Some(1))
 
-    When("getting not existing shopping list")
-    val shoppingListOpt = shoppingListService.getShoppingList(shoppingListNotExisting.id)
+      when(shoppingListRepository.saveShoppingList(any[ShoppingList])).thenReturn(Future.successful(Success(expectedShoppingList)))
 
-    Then("there should empty option as result")
-    shoppingListOpt shouldBe empty
+      val result = shoppingListService.addShoppingList(any[ShoppingList])
+
+      whenReady(result) { actualShoppingList =>
+        actualShoppingList.value shouldBe expectedShoppingList
+      }
+    }
+
+    it("should return None when an exception is thrown") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
+
+      when(shoppingListRepository.saveShoppingList(any[ShoppingList])).thenReturn(Future.successful(Failure(RuntimeException())))
+
+      val result = shoppingListService.addShoppingList(any[ShoppingList])
+
+      whenReady(result) { actualShoppingList =>
+        actualShoppingList shouldBe None
+      }
+    }
   }
 
-  it should "find shopping list by its id" in {
-    Given("multiple shopping lists")
-    val shoppingListService = ShoppingListService()
-    val shoppingList1 = shoppingListService.createEmptyShoppingList
-    val shoppingList2 = shoppingListService.createEmptyShoppingList
-    val shoppingList3 = shoppingListService.createEmptyShoppingList
+  describe("ShoppingListService#addItemToList") {
+    it("should return an item when successful") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
 
-    val shoppingListToFind = shoppingList2
+      val expectedItem = Item(Some(1), "apple", 1)
 
-    When("getting shopping list by its id")
-    val shoppingListOpt = shoppingListService.getShoppingList(shoppingListToFind.id)
+      when(itemRepository.saveItem(any[Item])).thenReturn(Future.successful(Success(expectedItem)))
 
-    Then("the retrieved shopping list should be equal")
-    shoppingListOpt.value should equal(shoppingListToFind)
+      val result = shoppingListService.addItemToList(anyLong, expectedItem)
+
+      whenReady(result) { actualItem =>
+        actualItem.value shouldBe expectedItem
+      }
+    }
+
+    it("should return None when an exception is thrown") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
+
+      val itemMock = mock[Item]
+      when(itemRepository.saveItem(any[Item])).thenReturn(Future.successful(Failure(RuntimeException())))
+
+      val result = shoppingListService.addItemToList(1, itemMock)
+
+      whenReady(result) { actualItem =>
+        actualItem shouldBe None
+      }
+    }
   }
 
-  it should "return shopping lists" in {
-    Given("multiple shopping lists")
-    val shoppingListService = ShoppingListService()
-    val shoppingList1 = shoppingListService.createEmptyShoppingList
-    val shoppingList2 = shoppingListService.createEmptyShoppingList
-    val shoppingList3 = shoppingListService.createEmptyShoppingList
+  describe("ShoppingListService#deleteShoppingList") {
+    it("should return number of affected rows when successful") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
 
-    When("getting shopping lists")
-    val shoppingListsOpt = shoppingListService.getShoppingLists
+      val numberOfAffectedRows = 1
 
-    Then("the retrieved shopping lists should contain all lists")
-    shoppingListsOpt.value should contain allOf(shoppingList1, shoppingList2, shoppingList3)
+      when(shoppingListRepository.deleteShoppingList(anyLong)).thenReturn(Future.successful(Success(numberOfAffectedRows)))
+
+      val result = shoppingListService.deleteShoppingList(anyLong)
+
+      whenReady(result) { code =>
+        code.value shouldBe numberOfAffectedRows
+      }
+    }
+
+    it("should return None when an exception is thrown") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
+
+      when(shoppingListRepository.deleteShoppingList(anyLong)).thenReturn(Future.successful(Failure(RuntimeException())))
+
+      val result = shoppingListService.deleteShoppingList(anyLong)
+
+      whenReady(result) { code =>
+        code shouldBe None
+      }
+    }
   }
 
-  it should "allow shopping list to be deleted" in {
-    Given("shopping list to be deleted")
-    val shoppingListService = ShoppingListService()
-    val shoppingList1 = shoppingListService.createEmptyShoppingList
-    val shoppingList2 = shoppingListService.createEmptyShoppingList
-    val shoppingList3 = shoppingListService.createEmptyShoppingList
+  describe("ShoppingListService#deleteItemInList") {
+    it("should return number of affected rows when successful") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
 
-    val shoppingListToDelete = shoppingList2
+      val numberOfAffectedRows = 1
 
-    When("shopping list is deleted by its id")
-    shoppingListService.deleteShoppingList(shoppingListToDelete.id)
+      when(itemRepository.deleteItem(anyLong, anyLong)).thenReturn(Future.successful(Success(numberOfAffectedRows)))
 
-    Then("shopping list should be deleted")
-    val shoppingListsOpt = shoppingListService.getShoppingLists
-    shoppingListsOpt.value should not contain shoppingListToDelete
-    And("shopping lists should have size one smaller")
-    shoppingListsOpt.value should have size 2
-  }
+      val result = shoppingListService.deleteItemInList(anyLong, anyLong)
 
-  it should "allow item to be added to empty shopping list" in {
-    Given("an empty shopping list")
-    val shoppingListService = ShoppingListService()
-    val shoppingList = shoppingListService.createEmptyShoppingList
-    val item = Item(1, "Apple")
+      whenReady(result) { code =>
+        code.value shouldBe numberOfAffectedRows
+      }
+    }
 
-    When("an item is added")
-    shoppingListService.addItemToList(shoppingList.id, item)
+    it("should return None when an exception is thrown") {
+      val itemRepository = mock[ItemRepository]
+      val shoppingListRepository = mock[ShoppingListRepository]
+      val shoppingListService = new ShoppingListService(itemRepository, shoppingListRepository)
 
-    Then("shopping list should contain added item")
-    val itemListOpt = shoppingListService.getItemsWithinList(shoppingList.id)
-    itemListOpt.value should contain(item)
+      when(itemRepository.deleteItem(anyLong, anyLong)).thenReturn(Future.successful(Failure(RuntimeException())))
 
-    And("the shopping list should have size 1")
-    itemListOpt.value should have size 1
-  }
+      val result = shoppingListService.deleteItemInList(anyLong, anyLong)
 
-  it should "allow multiple items to be added to shopping list" in {
-    Given("an empty shopping list")
-    val shoppingListService = ShoppingListService()
-    val shoppingList = shoppingListService.createEmptyShoppingList
-    val item1 = Item(1, "Apple")
-    val item2 = Item(2, "Orange")
-    val item3 = Item(3, "Grape")
-
-    When("items are added")
-    shoppingListService.addItemToList(shoppingList.id, item1)
-    shoppingListService.addItemToList(shoppingList.id, item2)
-    shoppingListService.addItemToList(shoppingList.id, item3)
-
-    Then("the shopping list should contain all items")
-    val shoppingListOpt = shoppingListService.getItemsWithinList(shoppingList.id)
-    shoppingListOpt.value should contain allOf(item1, item2, item3)
-    And("the shopping list should have size 3")
-    shoppingListOpt.value should have size 3
-  }
-
-  it should "return empty option when there is no items" in {
-    Given("an empty shopping list")
-    val shoppingListService = ShoppingListService()
-    val shoppingList = shoppingListService.createEmptyShoppingList
-
-    When("getting item list with given shopping list id")
-    val itemListOpt = shoppingListService.getItemsWithinList(shoppingList.id)
-
-    Then("retrieved item list should be empty")
-    itemListOpt.value shouldBe empty
-  }
-
-  it should "return item list" in {
-    Given("a shopping list")
-    val shoppingListService = ShoppingListService()
-    val shoppingList = shoppingListService.createEmptyShoppingList
-    val item1 = Item(1, "Apple")
-    val item2 = Item(2, "Orange")
-    val item3 = Item(3, "Grape")
-    shoppingListService.addItemToList(shoppingList.id, item1)
-    shoppingListService.addItemToList(shoppingList.id, item2)
-    shoppingListService.addItemToList(shoppingList.id, item3)
-
-    When("getting item list with given shopping list id")
-    val itemListOpt = shoppingListService.getItemsWithinList(shoppingList.id)
-
-    Then("retrieved item list should contain all items")
-    itemListOpt.value should contain allOf(item1, item2, item3)
-
-    And("retrieved item list should have size 3")
-    itemListOpt.value should have size 3
-  }
-
-  it should "find item by its id" in {
-    Given("a shopping list populated with items")
-    val shoppingListService = ShoppingListService()
-    val shoppingList = shoppingListService.createEmptyShoppingList
-    val item1 = Item(1, "Apple")
-    val item2 = Item(2, "Orange")
-    val item3 = Item(3, "Grape")
-    shoppingListService.addItemToList(shoppingList.id, item1)
-    shoppingListService.addItemToList(shoppingList.id, item2)
-    shoppingListService.addItemToList(shoppingList.id, item3)
-
-    val itemToFind = item2
-
-    When("getting item by its id")
-    val itemOpt = shoppingListService.getItemWithinList(shoppingList.id, itemToFind.id)
-
-    Then("the retrieved item should be equal")
-    itemOpt.value should equal(itemToFind)
-  }
-
-  it should "return empty option when there is no searched item" in {
-    Given("a shopping list populated with items")
-    val shoppingListService = ShoppingListService()
-    val shoppingList = shoppingListService.createEmptyShoppingList
-    val item1 = Item(1, "Apple")
-    val item2 = Item(2, "Orange")
-    val item3 = Item(3, "Grape")
-    shoppingListService.addItemToList(shoppingList.id, item1)
-    shoppingListService.addItemToList(shoppingList.id, item2)
-
-    val itemNotExisting = item3
-
-    When("getting not existing item")
-    val itemOpt = shoppingListService.getItemWithinList(shoppingList.id, itemNotExisting.id)
-
-    Then("the result should be empty")
-    itemOpt shouldBe empty
-  }
-
-  it should "allow item to be deleted" in {
-    Given("a shopping list populated with items")
-    val shoppingListService = ShoppingListService()
-    val shoppingList = shoppingListService.createEmptyShoppingList
-    val item1 = Item(1, "Apple")
-    val item2 = Item(2, "Orange")
-    val item3 = Item(3, "Grape")
-    shoppingListService.addItemToList(shoppingList.id, item1)
-    shoppingListService.addItemToList(shoppingList.id, item2)
-    shoppingListService.addItemToList(shoppingList.id, item3)
-    val itemToDelete = item2
-
-    When("item with given id is deleted")
-    shoppingListService.deleteItemInList(shoppingList.id, itemToDelete.id)
-
-    Then("the shopping list should not contain that item")
-    val itemListOpt = shoppingListService.getItemsWithinList(shoppingList.id)
-    itemListOpt.value should not contain itemToDelete
-
-    And("the shopping list should have size 2")
-    itemListOpt.value should have size 2
+      whenReady(result) { code =>
+        code shouldBe None
+      }
+    }
   }
 
 }

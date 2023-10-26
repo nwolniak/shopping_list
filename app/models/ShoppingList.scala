@@ -1,5 +1,11 @@
 package models
 
-import scala.collection.mutable.ListBuffer
+case class ShoppingList(id: Option[Long] = None)
 
-case class ShoppingList(id: Long, items: ListBuffer[Item])
+object ShoppingList {
+  def tupled: Option[Long] => ShoppingList = id => ShoppingList(id)
+
+  def unapply(shoppingList: ShoppingList): Option[Option[Long]] = {
+    Some(shoppingList.id)
+  }
+}

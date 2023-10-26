@@ -1,42 +1,42 @@
 package controllers
 
+import akka.actor.ActorSystem
+import akka.stream.Materializer
 import models.{Item, ShoppingList}
 import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.{any, anyLong, same}
+import org.mockito.ArgumentMatchers.{any, anyLong}
 import org.mockito.Mockito.*
 import org.scalatest.GivenWhenThen
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Play.materializer
-import play.api.libs.json.{Json, OFormat}
-import play.api.libs.ws.WSClient
-import play.api.mvc.Headers
-import play.api.test.FakeRequest
+import play.api.libs.json.{JsValue, Json, OFormat}
+import play.api.mvc.{Request, Result}
 import play.api.test.Helpers.*
+import play.api.test.{FakeRequest, Helpers}
 import services.ShoppingListService
 
-import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class ShoppingListControllerSpec extends PlaySpec
-  with GuiceOneAppPerSuite
   with MockitoSugar
   with GivenWhenThen {
 
-  private implicit val wsClient: WSClient = app.injector.instanceOf[WSClient]
-
   private implicit val itemFormatter: OFormat[Item] = Json.format[Item]
   implicit val shoppingListFormatter: OFormat[ShoppingList] = Json.format[ShoppingList]
+
+  val as = ActorSystem()
+  implicit val materializer: Materializer = Materializer(as)
 
   "ShoppingListController#createShoppingList" should {
     "create shopping list" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
-      val shoppingList = ShoppingList(1, ListBuffer[Item]())
+      val shoppingList = ShoppingList(Some(1))
 
-      when(shoppingListServiceMock.createEmptyShoppingList).thenReturn(shoppingList)
+      when(shoppingListServiceMock.createShoppingList).thenReturn(Future.successful(Some(shoppingList)))
 
-      val result = shoppingListController.createEmptyShoppingList.apply(FakeRequest())
+      val result = shoppingListController.createShoppingList.apply(FakeRequest())
 
       status(result) mustEqual OK
       contentType(result).value mustEqual "application/json"
@@ -48,15 +48,14 @@ class ShoppingListControllerSpec extends PlaySpec
     "add shopping list" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
-      val shoppingList = ShoppingList(1, ListBuffer[Item]())
+      val shoppingList = ShoppingList(Some(1))
 
-      doNothing().when(shoppingListServiceMock).addShoppingList(any[ShoppingList])
+      when(shoppingListServiceMock.addShoppingList(any[ShoppingList])).thenReturn(Future.successful(Some(shoppingList)))
 
-      val request = FakeRequest()
-        .withHeaders(CONTENT_TYPE -> "application/json")
-        .withJsonBody(Json.toJson[ShoppingList](shoppingList))
+      val requestMock = mock[Request[JsValue]]
+      when(requestMock.body).thenReturn(Json.toJson(shoppingList))
 
-      val result = shoppingListController.postShoppingList.apply(request)
+      val result = shoppingListController.postShoppingList.apply(requestMock)
 
       status(result) mustBe OK
     }
@@ -66,9 +65,9 @@ class ShoppingListControllerSpec extends PlaySpec
     "return shopping list with given id" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
-      val shoppingList = ShoppingList(1, ListBuffer[Item]())
+      val shoppingList = ShoppingList(Some(1))
 
-      when(shoppingListServiceMock.getShoppingList(anyLong())).thenReturn(Option(shoppingList))
+      when(shoppingListServiceMock.getShoppingList(anyLong())).thenReturn(Future.successful(Some(shoppingList)))
 
       val result = shoppingListController.getShoppingList(anyLong()).apply(FakeRequest())
 
@@ -80,7 +79,7 @@ class ShoppingListControllerSpec extends PlaySpec
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
 
-      when(shoppingListServiceMock.getShoppingList(anyLong())).thenReturn(Option.empty)
+      when(shoppingListServiceMock.getShoppingList(anyLong())).thenReturn(Future.successful(None))
 
       val result = shoppingListController.getShoppingList(anyLong()).apply(FakeRequest())
 
@@ -92,13 +91,13 @@ class ShoppingListControllerSpec extends PlaySpec
     "return shopping lists" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
-      val shoppingList1 = ShoppingList(1, ListBuffer[Item]())
-      val shoppingList2 = ShoppingList(2, ListBuffer[Item]())
-      val shoppingList3 = ShoppingList(3, ListBuffer[Item]())
+      val shoppingList1 = ShoppingList(Some(1))
+      val shoppingList2 = ShoppingList(Some(2))
+      val shoppingList3 = ShoppingList(Some(3))
 
       val shoppingLists = List[ShoppingList](shoppingList1, shoppingList2, shoppingList3)
 
-      when(shoppingListServiceMock.getShoppingLists).thenReturn(Option(shoppingLists))
+      when(shoppingListServiceMock.getShoppingLists).thenReturn(Future.successful(Some(shoppingLists)))
 
       val result = shoppingListController.getShoppingLists.apply(FakeRequest())
 
@@ -110,7 +109,7 @@ class ShoppingListControllerSpec extends PlaySpec
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
 
-      when(shoppingListServiceMock.getShoppingLists).thenReturn(Option.empty)
+      when(shoppingListServiceMock.getShoppingLists).thenReturn(Future.successful(None))
 
       val result = shoppingListController.getShoppingLists.apply(FakeRequest())
 
@@ -123,7 +122,7 @@ class ShoppingListControllerSpec extends PlaySpec
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
 
-      doNothing().when(shoppingListServiceMock).deleteShoppingList(anyLong())
+      when(shoppingListServiceMock.deleteShoppingList(anyLong())).thenReturn(Future.successful(Some(1)))
 
       val result = shoppingListController.deleteShoppingList(anyLong()).apply(FakeRequest())
 
@@ -135,9 +134,9 @@ class ShoppingListControllerSpec extends PlaySpec
     "return item with given id" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
-      val item = Item(1, "Apple")
+      val item = Item(Some(1), "Apple", 1)
 
-      when(shoppingListServiceMock.getItemWithinList(anyLong(), anyLong())).thenReturn(Option(item))
+      when(shoppingListServiceMock.getItemWithinList(anyLong(), anyLong())).thenReturn(Future.successful(Some(item)))
 
       val result = shoppingListController.getItemWithinList(anyLong(), anyLong()).apply(FakeRequest())
 
@@ -150,7 +149,7 @@ class ShoppingListControllerSpec extends PlaySpec
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
 
-      when(shoppingListServiceMock.getItemWithinList(anyLong(), anyLong())).thenReturn(Option.empty)
+      when(shoppingListServiceMock.getItemWithinList(anyLong(), anyLong())).thenReturn(Future.successful(None))
 
       val result = shoppingListController.getItemWithinList(anyLong(), anyLong()).apply(FakeRequest())
 
@@ -162,9 +161,9 @@ class ShoppingListControllerSpec extends PlaySpec
     "return all items within list" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
-      val itemList = List[Item](Item(1, "Apple"), Item(2, "Orange"), Item(3, "Grape"))
+      val itemList = List[Item](Item(Some(1), "Apple", 1), Item(Some(2), "Orange", 1), Item(Some(3), "Grape", 1))
 
-      when(shoppingListServiceMock.getItemsWithinList(anyLong())).thenReturn(Option(itemList))
+      when(shoppingListServiceMock.getItemsWithinList(anyLong())).thenReturn(Future.successful(Some(itemList)))
 
       val result = shoppingListController.getItemsWithinList(anyLong()).apply(FakeRequest())
 
@@ -177,7 +176,7 @@ class ShoppingListControllerSpec extends PlaySpec
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
 
-      when(shoppingListServiceMock.getItemsWithinList(anyLong())).thenReturn(Option.empty)
+      when(shoppingListServiceMock.getItemsWithinList(anyLong())).thenReturn(Future.successful(None))
 
       val result = shoppingListController.getItemsWithinList(anyLong()).apply(FakeRequest())
 
@@ -189,15 +188,14 @@ class ShoppingListControllerSpec extends PlaySpec
     "add new item" in {
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
-      val item = Item(1, "Apple")
+      val item = Item(Some(1), "Apple", 1)
 
-      doNothing().when(shoppingListServiceMock).addItemToList(anyLong(), same(item))
+      when(shoppingListServiceMock.addItemToList(anyLong(), any[Item])).thenReturn(Future.successful(Some(item)))
 
-      val request = FakeRequest()
-        .withHeaders(Headers(CONTENT_TYPE -> "application/json"))
-        .withJsonBody(Json.toJson(item))
+      val requestMock = mock[Request[JsValue]]
+      when(requestMock.body).thenReturn(Json.toJson(item))
 
-      val result = shoppingListController.postItemToList(1).apply(request)
+      val result: Future[Result] = shoppingListController.postItemToList(1L).apply(requestMock)
 
       status(result) mustBe OK
     }
@@ -208,7 +206,7 @@ class ShoppingListControllerSpec extends PlaySpec
       val shoppingListServiceMock = mock[ShoppingListService]
       val shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock)
 
-      doNothing().when(shoppingListServiceMock).deleteItemInList(anyLong(), anyLong())
+      when(shoppingListServiceMock.deleteItemInList(anyLong(), anyLong())).thenReturn(Future.successful(Some(1)))
 
       val result = shoppingListController.deleteItemInList(anyLong(), anyLong()).apply(FakeRequest())
 
