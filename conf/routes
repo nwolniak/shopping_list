@@ -3,20 +3,24 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-GET           /shopping-lists/create                       controllers.ShoppingListController.createShoppingList
+GET           /app/shopping-lists/create                       controllers.ShoppingListController.createShoppingList
 
-GET           /shopping-lists/:listId                      controllers.ShoppingListController.getShoppingList(listId: Long)
+GET           /app/shopping-lists/:listId                      controllers.ShoppingListController.getShoppingList(listId:                                                                                                                                                                                                                                                                                                                                      Long)
 
-GET           /shopping-lists                              controllers.ShoppingListController.getShoppingLists
+GET           /app/shopping-lists                              controllers.ShoppingListController.getShoppingLists
 
-GET           /shopping-lists/:listId/items/:itemId        controllers.ShoppingListController.getItemWithinList(listId: Long,itemId: Long)
+GET           /app/shopping-lists/:listId/items/:itemId        controllers.ShoppingListController.getItemWithinList(listId:                                                                                                                                                                                                                                                                      Long,        itemId:        Long)
 
-GET           /shopping-lists/:listId/items                controllers.ShoppingListController.getItemsWithinList(listId: Long)
+GET           /app/shopping-lists/:listId/items                controllers.ShoppingListController.getItemsWithinList(listId:                                                                                                                                                                                                     Long)
 
-POST          /shopping-lists                              controllers.ShoppingListController.postShoppingList
+POST          /app/shopping-lists                              controllers.ShoppingListController.postShoppingList
 
-POST          /shopping-lists/:listId/items                controllers.ShoppingListController.postItemToList(listId: Long)
+POST          /app/shopping-lists/:listId/items                controllers.ShoppingListController.postItemToList(listId:                                                                                                                                        Long)
 
-DELETE        /shopping-lists/:listId                      controllers.ShoppingListController.deleteShoppingList(listId: Long)
+DELETE        /app/shopping-lists/:listId                      controllers.ShoppingListController.deleteShoppingList(listId:                                                                       Long)
 
-DELETE        /shopping-lists/:listId/items/:itemId        controllers.ShoppingListController.deleteItemInList(listId: Long, itemId: Long)
+DELETE        /app/shopping-lists/:listId/items/:itemId        controllers.ShoppingListController.deleteItemInList(listId:        Long,        itemId:        Long)
+
+POST          /app/login                                       controllers.AuthController.login
+
+POST          /app/register                                    controllers.AuthController.register

@@ -1,11 +1,10 @@
 package services
 
 import com.google.inject.Inject
-import models.{Item, ShoppingList}
+import models.{Item, ShoppingList, ShoppingListDto}
 import play.api.Logger
 import repositories.{ItemRepository, ShoppingListRepository}
 
-import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -14,25 +13,27 @@ class ShoppingListService @Inject()
  val shoppingListRepository: ShoppingListRepository)
 (implicit ec: ExecutionContext) {
 
-  private val shoppingListMap = mutable.HashMap[Long, ShoppingList]()
-
   private val log = Logger(getClass)
 
-  def getShoppingList(listId: Long): Future[Option[ShoppingList]] = {
-    shoppingListRepository.getShoppingList(listId).map {
+  def getShoppingList(listId: Long): Future[Option[ShoppingListDto]] = {
+    shoppingListRepository.getShoppingList(listId).flatMap {
       case Failure(exception) =>
         log.error(s"Failed to get shopping list", exception)
-        None
-      case Success(shoppingList) => shoppingList
+        Future.failed(exception)
+      case Success(shoppingList) =>
+        getItemsWithinList(shoppingList.get.id.get)
+          .map(items => Some(ShoppingListDto(shoppingList.get, items)))
     }
   }
 
-  def getShoppingLists: Future[Option[Seq[ShoppingList]]] = {
-    shoppingListRepository.getShoppingLists.map {
+  def getShoppingLists: Future[Option[Seq[Option[ShoppingListDto]]]] = {
+    shoppingListRepository.getShoppingLists.flatMap {
       case Failure(exception) =>
-        log.error(s"Failed to get shopping list", exception)
-        None
-      case Success(shoppingLists) => Some(shoppingLists)
+        log.error(s"Failed to get shopping lists", exception)
+        Future.failed(exception)
+      case Success(shoppingLists) => Future.sequence(
+        shoppingLists.map(shoppingList => getShoppingList(shoppingList.id.get))
+      ).map(shoppingLists => Some(shoppingLists))
     }
   }
 

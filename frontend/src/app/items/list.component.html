@@ -1,1 +1,53 @@
-
+<div class="p-4">
+  <div class="container">
+    <h1>Shopping Lists</h1>
+    <div class="p-2">
+      <button (click)=createList() class="btn btn btn-success" [disabled]="isModifying">
+        <span *ngIf="isModifying" class="spinner-border spinner-border-sm"></span>
+        <span *ngIf="!isModifying">Add List</span>
+      </button>
+    </div>
+    <div *ngFor="let shoppingListView of shoppingListViews" class="card mb-3">
+      <div class="card-header">
+        <div class="row">
+          <div class="col">Shopping List ID: {{shoppingListView.shoppingList.id}}</div>
+          <div class="col text-end">Shopping Date: tomorrow</div>
+        </div>
+      </div>
+      <div class="card-body pb-1">
+        <a routerLink="{{shoppingListView.shoppingList.id}}/add" class="btn btn-sm btn-success"
+           style="width: 58px">Add</a>
+        <button (click)=deleteList(shoppingListView) class="btn btn-sm btn-danger" [disabled]="shoppingListView.isModifying">
+          <span *ngIf="shoppingListView.isModifying" class="spinner-border spinner-border-sm"></span>
+          <span *ngIf="!shoppingListView.isModifying">Delete</span>
+        </button>
+        <table class="table table-striped">
+          <thead class="table-secondary">
+          <tr>
+            <th style="width: 30%">Name</th>
+            <th style="width: 30%">Shopping List Id</th>
+            <th style="width: 40%"></th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let item of shoppingListView.items">
+            <td>{{item.name}}</td>
+            <td>{{item.shoppingListId}}</td>
+            <td style="white-space: nowrap">
+              <button (click)=null class="btn btn-sm btn-success" [disabled]="item.isModifying">
+                <span *ngIf="item.isModifying" class="spinner-border spinner-border-sm"></span>
+                <span *ngIf="!item.isModifying">Buy</span>
+              </button>
+              <button (click)="deleteItem(shoppingListView, item)" class="btn btn-sm btn-danger"
+                      [disabled]="item.isModifying">
+                <span *ngIf="item.isModifying" class="spinner-border spinner-border-sm"></span>
+                <span *ngIf="!item.isModifying">Delete</span>
+              </button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

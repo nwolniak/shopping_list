@@ -1,0 +1,55 @@
+<div class="p-4">
+  <div class="container">
+    <h1>Add Item To Shopping List</h1>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <label class="col-form-label-lg col-sm-2">Name</label>
+        <div class="col-sm-5">
+          <input type="text" formControlName="name" class="form-control"
+                 [ngClass]="{ 'is-invalid': submitted && controls.name.errors }"/>
+          <div *ngIf="submitted && controls.name.errors" class="invalid-feedback">
+            <div *ngIf="controls.name.errors.required">Name is required</div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <label class="col-form-label-lg col-sm-2">Category</label>
+        <div class="col-sm-5">
+          <select class="form-control" formControlName="category"
+                  [ngClass]="{ 'is-invalid': submitted && controls.category.errors }">
+            <option>Fruit</option>
+            <option>Vegetable</option>
+            <option>Meat</option>
+            <option>Bread</option>
+          </select>
+          <div *ngIf="submitted && controls.category.errors" class="invalid-feedback">
+            <div *ngIf="controls.category.errors.required">Category is required</div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <label class="col-form-label-lg col-sm-2">Unit Type</label>
+        <div class="col-sm-5">
+          <select class="form-control" formControlName="unitType"
+                  [ngClass]="{ 'is-invalid': submitted && controls.unitType.errors }">
+            <option>Bag</option>
+            <option>Bunch</option>
+            <option>Branch</option>
+            <option>Piece</option>
+            <option>Package</option>
+          </select>
+          <div *ngIf="submitted && controls.unitType.errors" class="invalid-feedback">
+            <div *ngIf="controls.unitType.errors.required">Unit Type is required</div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-group-lg mt-3">
+        <button [disabled]="submitting" class="btn btn-outline-success">
+          <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
+          Submit
+        </button>
+        <a routerLink="/shopping-lists" class="btn btn-outline-danger text-center">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
