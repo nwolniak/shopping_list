@@ -17,10 +17,14 @@ POST          /app/shopping-lists                              controllers.Shopp
 
 POST          /app/shopping-lists/:listId/items                controllers.ShoppingListController.postItemToList(listId:                                                                                                                                        Long)
 
-DELETE        /app/shopping-lists/:listId                      controllers.ShoppingListController.deleteShoppingList(listId:                                                                       Long)
+DELETE        /app/shopping-lists/:listId                      controllers.ShoppingListController.deleteShoppingList(listId: Long)
 
-DELETE        /app/shopping-lists/:listId/items/:itemId        controllers.ShoppingListController.deleteItemInList(listId:        Long,        itemId:        Long)
+DELETE        /app/shopping-lists/:listId/items/:itemId        controllers.ShoppingListController.deleteItemInList(listId: Long, itemId: Long)
 
 POST          /app/login                                       controllers.AuthController.login
 
 POST          /app/register                                    controllers.AuthController.register
+
+PUT           /app/shopping-lists/:listId                      controllers.ShoppingListController.putShoppingList(listId: Long)
+
+PUT           /app/shopping-lists/:listId/items/:itemId        controllers.ShoppingListController.putItemToList(listId: Long, itemId: Long)

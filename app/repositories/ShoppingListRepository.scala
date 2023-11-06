@@ -18,18 +18,23 @@ class ShoppingListRepository @Inject()(protected val dbConfigProvider: DatabaseC
   private lazy val shoppingListQuery = TableQuery[ShoppingListTable]
   private final val insertReturning = shoppingListQuery returning shoppingListQuery
 
-  def getShoppingList(listId: Long): Future[Try[Option[ShoppingList]]] = {
-    val query = shoppingListQuery.filter(_.id === listId).result.headOption
+  def getShoppingList(listId: Long, userId: Long): Future[Try[Option[ShoppingList]]] = {
+    val query = shoppingListQuery
+      .filter(shoppingList => shoppingList.id === listId && shoppingList.userId === userId)
+      .result
+      .headOption
     db.run(query.asTry)
   }
 
-  def getShoppingLists: Future[Try[Seq[ShoppingList]]] = {
-    val query = shoppingListQuery.result
+  def getShoppingLists(userId: Long): Future[Try[Seq[ShoppingList]]] = {
+    val query = shoppingListQuery
+      .filter(_.userId === userId)
+      .result
     db.run(query.asTry)
   }
 
-  def createShoppingList: Future[Try[ShoppingList]] = {
-    val query = insertReturning += ShoppingList(Option.empty)
+  def createShoppingList(userId: Long): Future[Try[ShoppingList]] = {
+    val query = insertReturning += ShoppingList(Option.empty, userId)
     db.run(query.asTry)
   }
 
@@ -43,9 +48,26 @@ class ShoppingListRepository @Inject()(protected val dbConfigProvider: DatabaseC
     db.run(query.asTry)
   }
 
-  def deleteShoppingList(listId: Long): Future[Try[Int]] = {
-    val query = shoppingListQuery.filter(_.id === listId).delete
+  def deleteShoppingList(listId: Long, userId: Long): Future[Try[Int]] = {
+    val query = shoppingListQuery
+      .filter(shoppingList => shoppingList.id === listId && shoppingList.userId === userId)
+      .delete
     db.run(query.asTry)
+  }
+
+  def putShoppingList(listId: Long, userId: Long, shoppingList: ShoppingList): Future[Try[Option[ShoppingList]]] = {
+    val ensureListExistsAction = shoppingListQuery
+      .filter(list => list.userId === userId && list.id === listId)
+      .exists
+      .result
+
+    val shoppingListAction = shoppingListQuery.filter(_.id === listId)
+
+    val updateAction = ensureListExistsAction andThen
+      shoppingListAction.update(shoppingList) andThen
+      shoppingListAction.result.headOption
+
+    db.run(updateAction.asTry)
   }
 
 }

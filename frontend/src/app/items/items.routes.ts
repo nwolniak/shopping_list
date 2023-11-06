@@ -4,5 +4,5 @@ import {AddComponent} from "@app/items/add.component";
 
 export const ITEMS_ROUTES: Routes = [
   {path: "", component: ListComponent},
-  {path: ":listId/add", component: AddComponent}
+  {path: "shopping-lists/:listId/add-item", component: AddComponent}
 ]

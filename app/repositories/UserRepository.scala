@@ -37,4 +37,9 @@ class UserRepository @Inject()(protected val dbConfigProvider: DatabaseConfigPro
     db.run(query.asTry)
   }
 
+  def getUser(username: String): Future[Try[Option[User]]] = {
+    val query = userQuery.filter(_.username === username).result.headOption
+    db.run(query.asTry)
+  }
+
 }

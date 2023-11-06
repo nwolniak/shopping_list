@@ -4,6 +4,7 @@ import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {AlertService, ListService} from "@app/_services";
 import {first} from "rxjs";
 import {NgClass, NgIf} from "@angular/common";
+import {Item} from "@app/_models";
 
 @Component({
   templateUrl: "add.component.html",
@@ -33,7 +34,7 @@ export class AddComponent implements OnInit {
     this.listId = this.route.snapshot.params['listId'];
     this.form = this.formBuilder.group({
       name: ['', Validators.required],
-      category: ['', Validators.required],
+      units: ['', Validators.required],
       unitType: ['', Validators.required]
     });
   }
@@ -46,8 +47,17 @@ export class AddComponent implements OnInit {
       return;
     }
 
+    let item: Item = new Item(
+      this.form.value.name,
+      parseInt(this.form.value.units),
+      this.form.value.unitType,
+      parseInt(this.listId)
+    );
+
+    console.log(item)
+
     this.submitting = true;
-    this.listService.addItemToShoppingList(this.listId, this.form.value)
+    this.listService.addItemToShoppingList(this.listId, item)
       .pipe(first())
       .subscribe({
         next: () => {

@@ -37,6 +37,10 @@ export class ListService {
     return this.http.get<ShoppingList>(`${environment.apiUrl}/shopping-lists/create`);
   }
 
+  updateShoppingList(shoppingList: ShoppingList): Observable<ShoppingList> {
+    return this.http.put<ShoppingList>(`${environment.apiUrl}/shopping-lists/${shoppingList.id}`, shoppingList);
+  }
+
   deleteShoppingList(listId: number) {
     return this.http.delete(`${environment.apiUrl}/shopping-lists/${listId}`);
   }
@@ -46,37 +50,13 @@ export class ListService {
     return this.http.post<Item>(`${environment.apiUrl}/shopping-lists/${listId}/items`, item);
   }
 
+  updateItemWithinList(listId: number, item: Item): Observable<Item> {
+    return this.http.put<Item>(`${environment.apiUrl}/shopping-lists/${listId}/items/${item.id}`, item);
+  }
+
   deleteItemWithinList(listId: number, itemId: number) {
     return this.http.delete(`${environment.apiUrl}/shopping-lists/${listId}/items/${itemId}`);
   }
-
-  // postShoppingList(cartId: string): Observable<ShoppingList> {
-  //   return this.http.post<ShoppingList>(`${environment.apiUrl}/orders`, {cartId})
-  //     .pipe(
-  //       concatMap(orderDto => this.mapDtoToShoppingList(orderDto)),
-  //       map(order => {
-  //         console.log(`Post order ${order}`)
-  //         this.ordersValue?.push(order);
-  //         this.ordersSubject.next(this.ordersValue);
-  //         return order;
-  //       })
-  //     );
-  // }
-  //
-  // deleteShoppingList(orderId: string) {
-  //   return this.http.delete(`${environment.apiUrl}/orders/${orderId}`)
-  //     .pipe(map(() => {
-  //       console.log(`Deleted ${orderId} order`)
-  //       const orders = this.ordersValue?.filter(order => order.orderId !== orderId);
-  //       this.ordersSubject.next(orders);
-  //     }));
-  // }
-
-  // private orderPrice(orderItems: ItemQuantity[]): number {
-  //   return orderItems
-  //     .map(orderItem => parseFloat((orderItem.quantity * parseFloat(orderItem.item.unitPrice)).toFixed(2)))
-  //     .reduce((previousValue, currentValue) => previousValue + currentValue);
-  // }
 
   get shoppingLists(): Observable<ShoppingListView[] | undefined> {
     return this._shoppingLists;

@@ -8,22 +8,17 @@
           <input type="text" formControlName="name" class="form-control"
                  [ngClass]="{ 'is-invalid': submitted && controls.name.errors }"/>
           <div *ngIf="submitted && controls.name.errors" class="invalid-feedback">
-            <div *ngIf="controls.name.errors.required">Name is required</div>
+            <div *ngIf="controls.name.errors.required">Name field is required</div>
           </div>
         </div>
       </div>
       <div class="row">
-        <label class="col-form-label-lg col-sm-2">Category</label>
+        <label class="col-form-label-lg col-sm-2">Units</label>
         <div class="col-sm-5">
-          <select class="form-control" formControlName="category"
-                  [ngClass]="{ 'is-invalid': submitted && controls.category.errors }">
-            <option>Fruit</option>
-            <option>Vegetable</option>
-            <option>Meat</option>
-            <option>Bread</option>
-          </select>
-          <div *ngIf="submitted && controls.category.errors" class="invalid-feedback">
-            <div *ngIf="controls.category.errors.required">Category is required</div>
+          <input type="text" formControlName="units" class="form-control"
+                 [ngClass]="{ 'is-invalid': submitted && controls.units.errors }"/>
+          <div *ngIf="submitted && controls.units.errors" class="invalid-feedback">
+            <div *ngIf="controls.units.errors.required">Units field is required</div>
           </div>
         </div>
       </div>
@@ -32,11 +27,9 @@
         <div class="col-sm-5">
           <select class="form-control" formControlName="unitType"
                   [ngClass]="{ 'is-invalid': submitted && controls.unitType.errors }">
-            <option>Bag</option>
-            <option>Bunch</option>
-            <option>Branch</option>
-            <option>Piece</option>
-            <option>Package</option>
+            <option>Szt</option>
+            <option>Kg</option>
+            <option>L</option>
           </select>
           <div *ngIf="submitted && controls.unitType.errors" class="invalid-feedback">
             <div *ngIf="controls.unitType.errors.required">Unit Type is required</div>

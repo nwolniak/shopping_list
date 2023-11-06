@@ -1,5 +1,5 @@
 <div class="p-4">
-  <div class="container">
+  <div class="container w-50">
     <h1>Shopping Lists</h1>
     <div class="p-2">
       <button (click)=createList() class="btn btn btn-success" [disabled]="isModifying">
@@ -11,35 +11,45 @@
       <div class="card-header">
         <div class="row">
           <div class="col">Shopping List ID: {{shoppingListView.shoppingList.id}}</div>
-          <div class="col text-end">Shopping Date: tomorrow</div>
+          <input [matDatepicker]="basicDatepicker" hidden width="0" [min]="minDate" [max]="maxDate"
+                 (dateChange)="changePurchaseDate(shoppingListView.shoppingList, $event)">
+          <div class="col-5">Purchase Date: {{shoppingListView.shoppingList.purchaseDate | date}}</div>
+          <div class="col-1 text-end">
+            <mat-datepicker-toggle [for]="basicDatepicker" style="margin-left: -50px"></mat-datepicker-toggle>
+            <mat-datepicker #basicDatepicker disabled="false"></mat-datepicker>
+          </div>
         </div>
       </div>
       <div class="card-body pb-1">
-        <a routerLink="{{shoppingListView.shoppingList.id}}/add" class="btn btn-sm btn-success"
-           style="width: 58px">Add</a>
-        <button (click)=deleteList(shoppingListView) class="btn btn-sm btn-danger" [disabled]="shoppingListView.isModifying">
+        <a routerLink="shopping-lists/{{shoppingListView.shoppingList.id}}/add-item" class="btn btn-sm btn-success"
+           style="width: 60px">Add</a>
+        <button (click)=deleteList(shoppingListView) class="btn btn-sm btn-danger" style="width: 58px"
+                [disabled]="shoppingListView.isModifying">
           <span *ngIf="shoppingListView.isModifying" class="spinner-border spinner-border-sm"></span>
           <span *ngIf="!shoppingListView.isModifying">Delete</span>
         </button>
-        <table class="table table-striped">
+        <table class="table">
           <thead class="table-secondary">
           <tr>
-            <th style="width: 30%">Name</th>
-            <th style="width: 30%">Shopping List Id</th>
-            <th style="width: 40%"></th>
+            <th style="width: 25%">Name</th>
+            <th style="width: 25%">Units</th>
+            <th style="width: 25%">Unit Type</th>
+            <th style="width: 25%"></th>
           </tr>
           </thead>
           <tbody>
-          <tr *ngFor="let item of shoppingListView.items">
+          <tr *ngFor="let item of shoppingListView.items" [ngClass]="{'table-success': item.isRealized}">
             <td>{{item.name}}</td>
-            <td>{{item.shoppingListId}}</td>
+            <td>{{item.units}}</td>
+            <td>{{item.unitType}}</td>
             <td style="white-space: nowrap">
-              <button (click)=null class="btn btn-sm btn-success" [disabled]="item.isModifying">
+              <button (click)="realizeItem(shoppingListView, item)" class="btn btn-sm btn-success" style="width: 60px;"
+                      [disabled]="item.isModifying" *ngIf="!item.isRealized">
                 <span *ngIf="item.isModifying" class="spinner-border spinner-border-sm"></span>
                 <span *ngIf="!item.isModifying">Buy</span>
               </button>
-              <button (click)="deleteItem(shoppingListView, item)" class="btn btn-sm btn-danger"
-                      [disabled]="item.isModifying">
+              <button (click)="deleteItem(shoppingListView, item)" class="btn btn-sm btn-danger" style="width: 60px;"
+                      [disabled]="item.isModifying" *ngIf="!item.isRealized">
                 <span *ngIf="item.isModifying" class="spinner-border spinner-border-sm"></span>
                 <span *ngIf="!item.isModifying">Delete</span>
               </button>

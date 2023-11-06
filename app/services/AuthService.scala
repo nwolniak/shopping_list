@@ -32,4 +32,16 @@ class AuthService @Inject()
     }
   }
 
+  def authenticate(authHeader: String): Future[Option[User]] = {
+    val base64Credentials = authHeader.stripPrefix("Basic ")
+    val credentials = new String(java.util.Base64.getDecoder.decode(base64Credentials))
+    val Array(username, password) = credentials.split(":", 2)
+    userRepository.getUser(username).map {
+      case Failure(exception) =>
+        log.error(s"Failed to authenticate user", exception)
+        None
+      case Success(user) => user
+    }
+  }
+
 }

@@ -10,27 +10,24 @@ CREATE TABLE users
 
 CREATE TABLE shopping_lists
 (
-    id SERIAL PRIMARY KEY
+    id            SERIAL PRIMARY KEY,
+    user_id       BIGINT NOT NULL,
+    purchase_date DATE,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE TABLE Items
+CREATE TABLE items
 (
     id               SERIAL PRIMARY KEY,
     name             VARCHAR(255) NOT NULL,
+    units            BIGINT       NOT NULL,
+    unit_type        VARCHAR(255) NOT NULL,
+    is_realized      BOOLEAN      NOT NULL,
     shopping_list_id BIGINT       NOT NULL,
     FOREIGN KEY (shopping_list_id) REFERENCES shopping_lists (id) ON DELETE CASCADE
 );
 
--- ALTER TABLE Items
---     ADD CONSTRAINT fk_shopping_list
---         FOREIGN KEY (shopping_list_id)
---             REFERENCES shopping_lists (id);
-
 -- !Downs
 DROP TABLE users;
 DROP TABLE Items;
-DROP TABLE shopping_lists CASCADE;
-
---
--- ALTER TABLE Items
---     DROP CONSTRAINT fk_shopping_list;
+DROP TABLE shopping_lists;

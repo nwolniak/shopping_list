@@ -1,7 +1,7 @@
 package services
 
 import com.google.inject.Inject
-import models.{Item, ShoppingList, ShoppingListDto}
+import models.{Item, ShoppingList, ShoppingListDto, User}
 import play.api.Logger
 import repositories.{ItemRepository, ShoppingListRepository}
 
@@ -15,30 +15,30 @@ class ShoppingListService @Inject()
 
   private val log = Logger(getClass)
 
-  def getShoppingList(listId: Long): Future[Option[ShoppingListDto]] = {
-    shoppingListRepository.getShoppingList(listId).flatMap {
+  def getShoppingList(listId: Long, userId: Long): Future[Option[ShoppingListDto]] = {
+    shoppingListRepository.getShoppingList(listId, userId).flatMap {
       case Failure(exception) =>
         log.error(s"Failed to get shopping list", exception)
         Future.failed(exception)
       case Success(shoppingList) =>
-        getItemsWithinList(shoppingList.get.id.get)
+        getItemsWithinList(shoppingList.get.id.get, userId)
           .map(items => Some(ShoppingListDto(shoppingList.get, items)))
     }
   }
 
-  def getShoppingLists: Future[Option[Seq[Option[ShoppingListDto]]]] = {
-    shoppingListRepository.getShoppingLists.flatMap {
+  def getShoppingLists(userId: Long): Future[Option[Seq[Option[ShoppingListDto]]]] = {
+    shoppingListRepository.getShoppingLists(userId).flatMap {
       case Failure(exception) =>
         log.error(s"Failed to get shopping lists", exception)
         Future.failed(exception)
       case Success(shoppingLists) => Future.sequence(
-        shoppingLists.map(shoppingList => getShoppingList(shoppingList.id.get))
+        shoppingLists.map(shoppingList => getShoppingList(shoppingList.id.get, userId))
       ).map(shoppingLists => Some(shoppingLists))
     }
   }
 
-  def getItemWithinList(listId: Long, itemId: Long): Future[Option[Item]] = {
-    itemRepository.getItemWithinList(listId, itemId).map {
+  def getItemWithinList(listId: Long, itemId: Long, userId: Long): Future[Option[Item]] = {
+    itemRepository.getItemWithinList(listId, itemId, userId).map {
       case Failure(exception) =>
         log.error(s"Failed to get item", exception)
         None
@@ -46,8 +46,8 @@ class ShoppingListService @Inject()
     }
   }
 
-  def getItemsWithinList(listId: Long): Future[Option[Seq[Item]]] = {
-    itemRepository.getItemsWithinList(listId).map {
+  def getItemsWithinList(listId: Long, userId: Long): Future[Option[Seq[Item]]] = {
+    itemRepository.getItemsWithinList(listId, userId).map {
       case Failure(exception) =>
         log.error(s"Failed to get items", exception)
         None
@@ -55,8 +55,8 @@ class ShoppingListService @Inject()
     }
   }
 
-  def createShoppingList: Future[Option[ShoppingList]] = {
-    shoppingListRepository.createShoppingList.map {
+  def createShoppingList(userId: Long): Future[Option[ShoppingList]] = {
+    shoppingListRepository.createShoppingList(userId).map {
       case Failure(exception) =>
         log.error(s"Failed to create shopping list", exception)
         None
@@ -64,8 +64,9 @@ class ShoppingListService @Inject()
     }
   }
 
-  def addShoppingList(shoppingList: ShoppingList): Future[Option[ShoppingList]] = {
-    shoppingListRepository.saveShoppingList(shoppingList).map {
+  def addShoppingList(shoppingList: ShoppingList, userId: Long): Future[Option[ShoppingList]] = {
+    val shoppingListWithUserId = shoppingList.copy(userId = userId)
+    shoppingListRepository.saveShoppingList(shoppingListWithUserId).map {
       case Failure(exception) =>
         log.error(s"Failed to save shopping list", exception)
         None
@@ -73,9 +74,9 @@ class ShoppingListService @Inject()
     }
   }
 
-  def addItemToList(listId: Long, item: Item): Future[Option[Item]] = {
+  def addItemToList(listId: Long, userId: Long, item: Item): Future[Option[Item]] = {
     val itemWithListId = item.copy(shoppingListId = listId)
-    itemRepository.saveItem(itemWithListId).map {
+    itemRepository.saveItem(listId, userId, itemWithListId).map {
       case Failure(exception) =>
         log.error(s"Failed to add item to list", exception)
         None
@@ -83,7 +84,7 @@ class ShoppingListService @Inject()
     }
   }
 
-  def addItemsToList(listId: Long, items: Seq[Item]): Future[Option[Seq[Item]]] = {
+  def addItemsToList(listId: Long, items: Seq[Item], userId: Long): Future[Option[Seq[Item]]] = {
     val itemsWithListId = items.map(_.copy(shoppingListId = listId))
     itemRepository.saveItems(itemsWithListId).map {
       case Failure(exception) =>
@@ -93,8 +94,8 @@ class ShoppingListService @Inject()
     }
   }
 
-  def deleteShoppingList(listId: Long): Future[Option[Int]] = {
-    shoppingListRepository.deleteShoppingList(listId).map {
+  def deleteShoppingList(listId: Long, userId: Long): Future[Option[Int]] = {
+    shoppingListRepository.deleteShoppingList(listId, userId).map {
       case Failure(exception) =>
         log.error(s"Failed to delete shopping list", exception)
         None
@@ -102,12 +103,30 @@ class ShoppingListService @Inject()
     }
   }
 
-  def deleteItemInList(listId: Long, itemId: Long): Future[Option[Int]] = {
-    itemRepository.deleteItem(listId, itemId).map {
+  def deleteItemInList(listId: Long, itemId: Long, userId: Long): Future[Option[Int]] = {
+    itemRepository.deleteItem(listId, itemId, userId).map {
       case Failure(exception) =>
         log.error(s"Failed to delete item", exception)
         None
       case Success(value) => Some(value)
+    }
+  }
+
+  def putShoppingList(listId: Long, userId: Long, shoppingList: ShoppingList): Future[Option[ShoppingList]] = {
+    shoppingListRepository.putShoppingList(listId, userId, shoppingList).map {
+      case Failure(exception) =>
+        log.error(s"Failed to put shopping list", exception)
+        None
+      case Success(shoppingList) => shoppingList
+    }
+  }
+
+  def putItemToList(listId: Long, itemId: Long, userId: Long, item: Item): Future[Option[Item]] = {
+    itemRepository.putItem(listId, itemId, userId, item).map {
+      case Failure(exception) =>
+        log.error(s"Failed to put item", exception)
+        None
+      case Success(item) => item
     }
   }
 

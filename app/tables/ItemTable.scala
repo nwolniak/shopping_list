@@ -12,9 +12,15 @@ class ItemTable(tag: Tag) extends Table[Item](tag, "items") {
 
   def name = column[String]("name")
 
+  def units = column[Long]("units")
+
+  def unitType = column[String]("unit_type")
+
+  def isRealized = column[Boolean]("is_realized")
+
   def shoppingListId = column[Long]("shopping_list_id")
 
-  def * = (id, name, shoppingListId) <> (Item.tupled, Item.unapply)
+  def * = (id, name, units, unitType, isRealized, shoppingListId) <> (Item.tupled, Item.unapply)
 
   def shoppingList = foreignKey("shopping_list_fk", shoppingListId, TableQuery[ShoppingListTable])(_.id.get)
 
