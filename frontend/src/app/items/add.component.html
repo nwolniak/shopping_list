@@ -1,48 +1,49 @@
 <div class="p-4">
-  <div class="container">
-    <h1>Add Item To Shopping List</h1>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="row">
-        <label class="col-form-label-lg col-sm-2">Name</label>
-        <div class="col-sm-5">
-          <input type="text" formControlName="name" class="form-control"
-                 [ngClass]="{ 'is-invalid': submitted && controls.name.errors }"/>
-          <div *ngIf="submitted && controls.name.errors" class="invalid-feedback">
-            <div *ngIf="controls.name.errors.required">Name field is required</div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <label class="col-form-label-lg col-sm-2">Units</label>
-        <div class="col-sm-5">
-          <input type="text" formControlName="units" class="form-control"
-                 [ngClass]="{ 'is-invalid': submitted && controls.units.errors }"/>
-          <div *ngIf="submitted && controls.units.errors" class="invalid-feedback">
-            <div *ngIf="controls.units.errors.required">Units field is required</div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <label class="col-form-label-lg col-sm-2">Unit Type</label>
-        <div class="col-sm-5">
-          <select class="form-control" formControlName="unitType"
-                  [ngClass]="{ 'is-invalid': submitted && controls.unitType.errors }">
-            <option>Szt</option>
-            <option>Kg</option>
-            <option>L</option>
-          </select>
-          <div *ngIf="submitted && controls.unitType.errors" class="invalid-feedback">
-            <div *ngIf="controls.unitType.errors.required">Unit Type is required</div>
-          </div>
-        </div>
-      </div>
-      <div class="btn-group-lg mt-3">
-        <button [disabled]="submitting" class="btn btn-outline-success">
-          <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
-          Submit
-        </button>
-        <a routerLink="/shopping-lists" class="btn btn-outline-danger text-center">Cancel</a>
-      </div>
-    </form>
-  </div>
+    <div class="container">
+        <h1>Add Item To Shopping List</h1>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="row">
+                <label class="col-form-label-lg col-sm-2">Name</label>
+                <div class="col-sm-5">
+                    <input type="text" formControlName="name" class="name-input form-control"
+                           [ngClass]="{ 'is-invalid': submitted && this.form.controls.name.errors }"/>
+                    <div *ngIf="submitted && this.form.controls.name.errors" class="invalid-feedback">
+                        <div *ngIf="this.form.controls.name.errors.required">Name field is required</div>
+                        <div *ngIf="this.form.controls.name.errors.pattern">Name field should be characters only</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <label class="col-form-label-lg col-sm-2">Units</label>
+                <div class="col-sm-5">
+                    <input type="text" formControlName="units" class="units-input form-control"
+                           [ngClass]="{ 'is-invalid': submitted && this.form.controls.units.errors }"/>
+                    <div *ngIf="submitted && this.form.controls.units.errors" class="invalid-feedback">
+                        <div *ngIf="this.form.controls.units.errors.required">Units field is required</div>
+                        <div *ngIf="this.form.controls.units.errors.pattern">Units field should be numbers only</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <label class="col-form-label-lg col-sm-2">Unit Type</label>
+                <div class="col-sm-5">
+                    <select formControlName="unitType" class="unit-type-input form-control"
+                            [ngClass]="{ 'is-invalid': submitted && this.form.controls.unitType.errors }">
+                        <option>Szt</option>
+                        <option>Kg</option>
+                        <option>L</option>
+                    </select>
+                    <div *ngIf="submitted && this.form.controls.unitType.errors" class="invalid-feedback">
+                        <div *ngIf="this.form.controls.unitType.errors.required">Unit Type is required</div>
+                    </div>
+                </div>
+            </div>
+            <div class="btn-group-lg mt-3">
+                <button type="submit" [disabled]="submitting" class="submit-button btn btn-outline-success">
+                    <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>Submit
+                </button>
+                <a routerLink="/shopping-lists" class="cancel-button btn btn-outline-danger text-center">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>

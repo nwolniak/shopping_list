@@ -1,23 +1,44 @@
-import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { AppComponent } from './app.component';
+import {AppComponent} from "@app/app.component";
+import {ComponentFixture, TestBed} from "@angular/core/testing";
+import {AuthService} from "@app/_services";
+import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
+import {User} from "@app/_models";
+import {Observable, of} from "rxjs";
 
-describe('AppComponent', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [RouterTestingModule],
-    declarations: [AppComponent]
-  }));
+describe("App Component", () => {
+    let component: AppComponent;
+    let fixture: ComponentFixture<AppComponent>;
+    let authService: AuthService;
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
+    const authServiceMock = {
+        user: of(new User("username", "password")) as Observable<User | null>,
+        logout(): void {
+        }
+    } as AuthService;
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('frontend app is running!');
-  });
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            imports: [FontAwesomeModule],
+            providers: [
+                AppComponent,
+                {provide: AuthService, useValue: authServiceMock}
+            ]
+        });
+        authService = TestBed.inject(AuthService);
+        fixture = TestBed.createComponent(AppComponent);
+        component = fixture.componentInstance;
+
+
+        fixture.detectChanges();
+    });
+
+    it("should create the app", () => {
+        expect(component).toBeTruthy();
+    });
+
+    it("should call AuthService.logout() when logout is called", () => {
+        spyOn(authService, "logout");
+        component.logout();
+        expect(authService.logout).toHaveBeenCalled();
+    });
 });

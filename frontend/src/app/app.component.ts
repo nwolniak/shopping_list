@@ -5,28 +5,32 @@ import {faChevronLeft, faEye, faPencilSquare, faUser} from "@fortawesome/free-so
 import {RouterOutlet} from "@angular/router";
 import {AlertComponent} from "@app/components/alert.component";
 import {CommonModule} from "@angular/common";
+import {User} from "@app/_models";
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
-  imports: [
-    FontAwesomeModule,
-    RouterOutlet,
-    AlertComponent,
-    CommonModule
-  ],
-  standalone: true
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss'],
+    imports: [
+        FontAwesomeModule,
+        RouterOutlet,
+        AlertComponent,
+        CommonModule
+    ],
+    standalone: true
 })
 export class AppComponent {
 
-  constructor(library: FaIconLibrary,
-              private auth: AuthService) {
-    library.addIcons(faEye, faPencilSquare, faUser, faChevronLeft);
-  }
+    user?: User | null;
 
-  logout() {
-    this.auth.logout();
-  }
+    constructor(library: FaIconLibrary,
+                private auth: AuthService) {
+        this.auth.user.subscribe(user => this.user = user);
+        library.addIcons(faEye, faPencilSquare, faUser, faChevronLeft);
+    }
+
+    logout() {
+        this.auth.logout();
+    }
 
 }

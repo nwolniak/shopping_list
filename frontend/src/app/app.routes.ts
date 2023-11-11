@@ -5,8 +5,8 @@ import {authGuard} from "@app/_helpers";
 const itemsModuleLazy = () => import("@app/items/items.routes").then(routes => routes.ITEMS_ROUTES);
 
 export const APP_ROUTES: Routes = [
-  {path: "", loadChildren: itemsModuleLazy, canActivate: [authGuard]},
-  {path: "account/login", component: LoginComponent},
-  {path: "account/register", component: RegisterComponent},
-  {path: "**", redirectTo: ""}
+    {path: "", loadChildren: itemsModuleLazy, canActivate: [authGuard]},
+    {path: "account/login", component: LoginComponent},
+    {path: "account/register", component: RegisterComponent},
+    {path: "**", redirectTo: ""}
 ];

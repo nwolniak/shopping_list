@@ -3,11 +3,11 @@ import {Item} from "@app/_models/item";
 
 export class ShoppingListView {
 
-  constructor(
-    public shoppingList: ShoppingList,
-    public items: Item[],
-    public isModifying: boolean = false
-  ) {
-  }
+    constructor(
+        public shoppingList: ShoppingList,
+        public items: Item[],
+        public isModifying: boolean = false
+    ) {
+    }
 
 }
