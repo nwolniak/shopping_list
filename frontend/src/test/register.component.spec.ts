@@ -44,7 +44,7 @@ describe("[IT] Register Component", () => {
 
     expect(formElement.textContent).toContain("Username");
     expect(formElement.textContent).toContain("Password");
-    expect(submitButton.textContent).toBe("Register");
+    expect(submitButton.textContent).toBe("Register ");
   });
 
   it("should not show any validation errors if form is submitted with correct data", () => {

@@ -34,7 +34,7 @@ class ShoppingListRepository @Inject()(protected val dbConfigProvider: DatabaseC
   }
 
   def createShoppingList(userId: Long): Future[Try[ShoppingList]] = {
-    val query = insertReturning += ShoppingList(Option.empty, userId)
+    val query = insertReturning += ShoppingList(userId = userId)
     db.run(query.asTry)
   }
 

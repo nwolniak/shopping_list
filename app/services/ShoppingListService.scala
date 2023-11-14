@@ -1,7 +1,7 @@
 package services
 
 import com.google.inject.Inject
-import models.{Item, ShoppingList, ShoppingListDto, User}
+import models.{Item, ShoppingList, ShoppingListDto}
 import play.api.Logger
 import repositories.{ItemRepository, ShoppingListRepository}
 
@@ -19,21 +19,34 @@ class ShoppingListService @Inject()
     shoppingListRepository.getShoppingList(listId, userId).flatMap {
       case Failure(exception) =>
         log.error(s"Failed to get shopping list", exception)
-        Future.failed(exception)
+        Future.successful(None)
       case Success(shoppingList) =>
         getItemsWithinList(shoppingList.get.id.get, userId)
           .map(items => Some(ShoppingListDto(shoppingList.get, items)))
     }
   }
 
-  def getShoppingLists(userId: Long): Future[Option[Seq[Option[ShoppingListDto]]]] = {
+  //  def getShoppingLists(userId: Long): Future[Option[Seq[Option[ShoppingListDto]]]] = {
+  //    shoppingListRepository.getShoppingLists(userId).flatMap {
+  //      case Failure(exception) =>
+  //        log.error(s"Failed to get shopping lists", exception)
+  //        Future.successful(None)
+  //      case Success(shoppingLists) => Future.sequence(
+  //        shoppingLists.map(shoppingList => getShoppingList(shoppingList.id.get, userId))
+  //      ).map(shoppingLists => Some(shoppingLists))
+  //    }
+  //  }
+  def getShoppingLists(userId: Long): Future[Option[Seq[ShoppingListDto]]] = {
     shoppingListRepository.getShoppingLists(userId).flatMap {
       case Failure(exception) =>
         log.error(s"Failed to get shopping lists", exception)
-        Future.failed(exception)
+        Future.successful(None)
       case Success(shoppingLists) => Future.sequence(
-        shoppingLists.map(shoppingList => getShoppingList(shoppingList.id.get, userId))
-      ).map(shoppingLists => Some(shoppingLists))
+        shoppingLists.map { shoppingList =>
+          getItemsWithinList(shoppingList.id.get, userId).map { items =>
+            ShoppingListDto(shoppingList, items)
+          }
+        }).map(shoppingLists => Some(shoppingLists))
     }
   }
 
@@ -78,7 +91,7 @@ class ShoppingListService @Inject()
     val itemWithListId = item.copy(shoppingListId = listId)
     itemRepository.saveItem(listId, userId, itemWithListId).map {
       case Failure(exception) =>
-        log.error(s"Failed to add item to list", exception)
+        log.error(s"Failed to add item $item to list", exception)
         None
       case Success(item) => Some(item)
     }

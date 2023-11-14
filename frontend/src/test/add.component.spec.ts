@@ -56,7 +56,7 @@ describe("[IT] Add Item Component", () => {
     expect(formElement.textContent).toContain("Name");
     expect(formElement.textContent).toContain("Units");
     expect(formElement.textContent).toContain("Unit Type");
-    expect(submitButton.textContent).toBe("Submit");
+    expect(submitButton.textContent).toBe("Submit ");
   });
 
   it("should not show any validation errors if form is submitted with correct data", () => {

@@ -14,6 +14,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Injecting
 import play.api.{Application, Configuration}
 
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
@@ -38,6 +39,9 @@ class ShoppingListRepositorySpec extends AnyFreeSpec
 
   override protected def beforeEach(): Unit = {
     Evolutions.applyEvolutions(db)
+    val userRepository = inject[UserRepository]
+    val userRegistered = userRepository.register(models.User(Some(1), "username", "password"))
+    Await.ready(userRegistered, Span(2, Seconds))
   }
 
   override protected def afterEach(): Unit = {
@@ -49,7 +53,7 @@ class ShoppingListRepositorySpec extends AnyFreeSpec
     "should create a shopping list" in {
       val shoppingListRepository = inject[ShoppingListRepository]
 
-      val result = shoppingListRepository.createShoppingList
+      val result = shoppingListRepository.createShoppingList(1)
 
       whenReady(result) {
         case Failure(exception) => fail(exception)
@@ -62,7 +66,7 @@ class ShoppingListRepositorySpec extends AnyFreeSpec
     "should save a shopping list" in {
       val shoppingListRepository = inject[ShoppingListRepository]
 
-      val shoppingList = ShoppingList(Some(1))
+      val shoppingList = ShoppingList(userId = 1)
 
       val result = shoppingListRepository.saveShoppingList(shoppingList)
 
@@ -78,9 +82,9 @@ class ShoppingListRepositorySpec extends AnyFreeSpec
       val shoppingListRepository = inject[ShoppingListRepository]
 
       val shoppingLists = Seq(
-        ShoppingList(Some(1)),
-        ShoppingList(Some(2)),
-        ShoppingList(Some(3))
+        ShoppingList(id = Some(1), userId = 1),
+        ShoppingList(id = Some(2), userId = 1),
+        ShoppingList(id = Some(3), userId = 1)
       )
 
       val result = shoppingListRepository.saveShoppingLists(shoppingLists)
@@ -99,34 +103,33 @@ class ShoppingListRepositorySpec extends AnyFreeSpec
       val shoppingListRepository = inject[ShoppingListRepository]
 
       val shoppingLists = Seq(
-        ShoppingList(Some(1)),
-        ShoppingList(Some(2)),
-        ShoppingList(Some(3))
+        ShoppingList(id = Some(1), userId = 1),
+        ShoppingList(id = Some(2), userId = 1),
+        ShoppingList(id = Some(3), userId = 1)
       )
 
       val result = for {
-        x <- shoppingListRepository.saveShoppingLists(shoppingLists)
-        shoppingList <- shoppingListRepository.getShoppingList(2)
+        _ <- shoppingListRepository.saveShoppingLists(shoppingLists)
+        shoppingList <- shoppingListRepository.getShoppingList(2, 1)
       } yield shoppingList
 
       whenReady(result) {
         case Failure(exception) => fail(exception)
-        case Success(value) => value.value shouldBe ShoppingList(Some(2))
+        case Success(value) => value.value shouldBe ShoppingList(id = Some(2), userId = 1)
       }
     }
-
     "should return None when not found" in {
       val shoppingListRepository = inject[ShoppingListRepository]
 
       val shoppingLists = Seq(
-        ShoppingList(Some(1)),
-        ShoppingList(Some(2)),
-        ShoppingList(Some(3))
+        ShoppingList(id = Some(1), userId = 1),
+        ShoppingList(id = Some(2), userId = 1),
+        ShoppingList(id = Some(3), userId = 1)
       )
 
       val result = for {
-        x <- shoppingListRepository.saveShoppingLists(shoppingLists)
-        shoppingList <- shoppingListRepository.getShoppingList(5)
+        _ <- shoppingListRepository.saveShoppingLists(shoppingLists)
+        shoppingList <- shoppingListRepository.getShoppingList(5, 3)
       } yield shoppingList
 
       whenReady(result) {
@@ -141,13 +144,13 @@ class ShoppingListRepositorySpec extends AnyFreeSpec
       val shoppingListRepository = inject[ShoppingListRepository]
 
       val shoppingLists = Seq(
-        ShoppingList(Some(1)),
-        ShoppingList(Some(2)),
-        ShoppingList(Some(3))
+        ShoppingList(id = Some(1), userId = 1),
+        ShoppingList(id = Some(2), userId = 1),
+        ShoppingList(id = Some(3), userId = 1)
       )
 
       val result = shoppingListRepository.saveShoppingLists(shoppingLists)
-        .flatMap(_ => shoppingListRepository.getShoppingLists)
+        .flatMap(_ => shoppingListRepository.getShoppingLists(1))
 
       whenReady(result) {
         case Failure(exception) => fail(exception)
@@ -156,11 +159,10 @@ class ShoppingListRepositorySpec extends AnyFreeSpec
           value should contain allElementsOf shoppingLists
       }
     }
-
     "should return empty list when there is not any shopping lists" in {
       val shoppingListRepository = inject[ShoppingListRepository]
 
-      val result = shoppingListRepository.getShoppingLists
+      val result = shoppingListRepository.getShoppingLists(1)
 
       whenReady(result) {
         case Failure(exception) => fail(exception)

@@ -23,7 +23,7 @@ class ShoppingListController @Inject()(val controllerComponents: ControllerCompo
   def createShoppingList: Action[AnyContent] = authenticatedAction.async { request =>
     val userId = request.user.id.get
     shoppingListService.createShoppingList(userId).map {
-      case Some(shoppingList) => Ok(Json.toJson(shoppingList))
+      case Some(shoppingList) => Created(Json.toJson(shoppingList))
       case None => NoContent
     }
   }
@@ -32,7 +32,7 @@ class ShoppingListController @Inject()(val controllerComponents: ControllerCompo
     val userId = request.user.id.get
     val shoppingList = request.body
     shoppingListService.addShoppingList(shoppingList, userId).map {
-      case Some(savedShoppingList) => Ok(Json.toJson(savedShoppingList))
+      case Some(savedShoppingList) => Created(Json.toJson(savedShoppingList))
       case None => NoContent
     }
   }
@@ -41,7 +41,7 @@ class ShoppingListController @Inject()(val controllerComponents: ControllerCompo
     val userId = request.user.id.get
     val item = request.body
     shoppingListService.addItemToList(listId, userId, item).map {
-      case Some(savedItem) => Ok(Json.toJson(savedItem))
+      case Some(savedItem) => Created(Json.toJson(savedItem))
       case None => NoContent
     }
   }
@@ -50,7 +50,7 @@ class ShoppingListController @Inject()(val controllerComponents: ControllerCompo
     val userId = request.user.id.get
     shoppingListService.getShoppingList(listId, userId).map {
       case Some(shoppingListDto) => Ok(Json.toJson(shoppingListDto))
-      case None => NoContent
+      case None => NotFound
     }
   }
 
@@ -58,7 +58,7 @@ class ShoppingListController @Inject()(val controllerComponents: ControllerCompo
     val userId = request.user.id.get
     shoppingListService.getShoppingLists(userId).map {
       case Some(shoppingListsDto) => Ok(Json.toJson(shoppingListsDto))
-      case None => NoContent
+      case None => NotFound
     }
   }
 
@@ -66,7 +66,7 @@ class ShoppingListController @Inject()(val controllerComponents: ControllerCompo
     val userId = request.user.id.get
     shoppingListService.getItemWithinList(listId, itemId, userId).map {
       case Some(item) => Ok(Json.toJson(item))
-      case None => NoContent
+      case None => NotFound
     }
   }
 
@@ -74,7 +74,7 @@ class ShoppingListController @Inject()(val controllerComponents: ControllerCompo
     val userId = request.user.id.get
     shoppingListService.getItemsWithinList(listId, userId).map {
       case Some(items) => Ok(Json.toJson(items))
-      case None => NoContent
+      case None => NotFound
     }
   }
 
@@ -83,7 +83,7 @@ class ShoppingListController @Inject()(val controllerComponents: ControllerCompo
     shoppingListService.deleteShoppingList(listId, userId).map {
       case Some(0) => NotFound
       case Some(_) => Ok
-      case None => Conflict
+      case None => NoContent
     }
   }
 

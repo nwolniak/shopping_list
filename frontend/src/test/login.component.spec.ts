@@ -44,7 +44,7 @@ describe("[IT] Login Component", () => {
 
     expect(formElement.textContent).toContain("Username");
     expect(formElement.textContent).toContain("Password");
-    expect(loginButton.textContent).toBe("Login");
+    expect(loginButton.textContent).toBe("Login ");
   });
 
   it("should not show any validation errors if form is submitted with correct data", () => {

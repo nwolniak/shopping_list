@@ -17,7 +17,7 @@ class AuthService @Inject()
   def register(user: User): Future[Option[User]] = {
     userRepository.register(user).map {
       case Failure(exception) =>
-        log.error(s"Failed to login user", exception)
+        log.error(s"Failed to register user", exception)
         None
       case Success(user) => Option(user)
     }
@@ -29,6 +29,15 @@ class AuthService @Inject()
         log.error(s"Failed to login user", exception)
         None
       case Success(user) => user
+    }
+  }
+  
+  def deleteUser(userId: Long): Future[Option[Int]] = {
+    userRepository.deleteUser(userId).map {
+      case Failure(exception) =>
+        log.error(s"Failed to delete user", exception)
+        None
+      case Success(value) => Some(value)
     }
   }
 

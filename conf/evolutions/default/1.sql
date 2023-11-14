@@ -28,6 +28,6 @@ CREATE TABLE items
 );
 
 -- !Downs
-DROP TABLE users;
-DROP TABLE Items;
-DROP TABLE shopping_lists;
+DROP TABLE IF EXISTS items;
+DROP TABLE IF EXISTS shopping_lists;
+DROP TABLE IF EXISTS users;
