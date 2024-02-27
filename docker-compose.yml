@@ -3,7 +3,7 @@ name: "shopping-list"
 services:
   postgres-server:
     image: postgres:16-alpine
-    container_name: postgres
+    container_name: postgres-dev
     environment:
       - POSTGRES_DB=shopping_lists
       - POSTGRES_USER=user

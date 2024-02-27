@@ -3,14 +3,14 @@ package controllers
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import models.{Item, ShoppingList, ShoppingListDto, User}
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.{any, anyLong}
 import org.mockito.Mockito.*
+import org.mockito.{ArgumentMatchers, Mockito}
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{JsValue, Json, OFormat}
-import play.api.mvc.{AnyContent, Request, Result}
+import play.api.mvc.{AnyContent, BodyParsers, Request, Result}
 import play.api.test.Helpers.*
 import play.api.test.{FakeRequest, Helpers}
 import services.{AuthService, ShoppingListService}
@@ -40,7 +40,7 @@ class ShoppingListControllerSpec extends PlaySpec
     authServiceMock = mock[AuthService]
     when(authServiceMock.authenticate("Basic dXNlcm5hbWU6cGFzc3dvcmQ="))
       .thenReturn(Future.successful(Some(User(id = Some(1), username = "username", password = "password"))))
-    val authenticatedAction = AuthenticatedAction(authServiceMock, stubBodyParser())
+    val authenticatedAction = AuthenticatedAction(authServiceMock, BodyParsers.Default(stubPlayBodyParsers))
     shoppingListController = ShoppingListController(stubControllerComponents(), shoppingListServiceMock, authenticatedAction)
   }
 
