@@ -63,15 +63,15 @@ describe("Shopping Lists page", () => {
 
     it("should allow to choose shopping list purchase date", () => {
         cy.get("mat-datepicker-toggle").click();
-        cy.get("button[aria-label='November 23, 2023']").click();
-        cy.get(".date-input").should("have.attr", "placeholder", "Purchase Date: Nov 23, 2023");
+        cy.get("button[aria-label='February 29, 2024']").click();
+        cy.get(".date-input").should("have.attr", "placeholder", "Purchase Date: Feb 29, 2024");
     })
 
     it("should allow to change current shopping list purchase date", () => {
-        cy.get(".date-input").should("have.attr", "placeholder", "Purchase Date: Nov 23, 2023");
+        cy.get(".date-input").should("have.attr", "placeholder", "Purchase Date: Feb 29, 2024");
         cy.get("mat-datepicker-toggle").click();
-        cy.get("button[aria-label='November 24, 2023']").click();
-        cy.get(".date-input").should("have.attr", "placeholder", "Purchase Date: Nov 24, 2023");
+        cy.get("button[aria-label='February 29, 2024']").click();
+        cy.get(".date-input").should("have.attr", "placeholder", "Purchase Date: Feb 29, 2024");
     })
 
     it("should allow to delete shopping lists", () => {
