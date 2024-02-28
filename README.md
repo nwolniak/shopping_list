@@ -9,7 +9,7 @@ date of purchase.
 ## List of Contents
 
 1. [Setup Instructions](#setup-instructions)
-2. [Backend](#backend-java-spring)
+2. [Backend](#backend-scala-play)
 3. [Frontend](#frontend-angular)
 4. [Containers](#docker-compose-configuration)
 4. [GUI](#gui)
@@ -25,7 +25,7 @@ date of purchase.
 ## Backend Scala Play
 
 The backend of the Shopping List project is built using Scala Play which is lightweight and scalable web framework. It
-provides endpoints to handle user authentication and items management required for an online shopping list system. Scala 
+provides endpoints to handle user authentication and items management required for an online shopping list system. Scala
 Slick was used as a data access library for application making it easy to work with relational databases.
 
 ### Technologies Used:
@@ -44,10 +44,9 @@ This relational model represents the structure of tables in a database.
 <img src="images/relational_model.png" alt="Relational Model" style="width: 35%">
 </div>
 
-
 ### Backend Tests:
 
-Backend was thoroughly unit tested using a behavioral style along with mocks.
+Backend was thoroughly unit tested using a behavioral style along with mocking.
 
 <div style="text-align: center">
 <img src="images/scala-tests.png" alt="Scala Tests" style="width: 85%">
@@ -64,7 +63,7 @@ interface for users to use application.
 - TypeScript
 - HTML
 - Bootstrap styling
-- Cypress
+- Cypress for e2e testing
 
 ### Frontend Tests:
 
@@ -88,3 +87,65 @@ Cypress was used to simulate user interactions across the entire application.
   <div style="text-align: left">
   <img src="images/cypress-tests.png" alt="cypress-tests" style="width: 69%">
   </div>
+
+## Docker Compose Configuration
+
+Docker Compose configuration is provided to easily deploy the Shopping List project along with its dependencies in
+isolated containers.
+
+### Services Included:
+
+- Backend (Scala Play)
+- Frontend (Angular)
+- PostgreSQL Database
+
+## GUI
+
+### List of GUI components:
+
+- **Login Form**
+  <div style="text-align: left">
+  <img src="images/login.png" alt="Login Form" style="width: 70%">
+  </div>
+
+  - The login form allows user to enter their credentials.
+
+- **Registration Form**
+
+  <div style="text-align: left">
+  <img src="images/register.png" alt="Registration Form" style="width: 70%">
+  </div>
+
+  - The registration form allows new users to create an account.
+
+- **Main Page**
+
+  <div style="text-align: left">
+  <img src="images/main.png" alt="Home Page" style="width: 70%">
+  </div>
+
+  - The home page serves as the main landing page of the application.
+
+- **New Item Form**
+
+  <div style="text-align: left">
+  <img src="images/new-item.png" alt="Home Page" style="width: 70%">
+  </div>
+  
+  - The item creation form allows users to add new items to the list.
+
+- **List View**
+
+  <div style="text-align: left">
+  <img src="images/list-view.png" alt="Home Page" style="width: 70%">
+  </div>
+
+  - The current list is displayed at main page.
+
+- **Ticking Out Items**
+
+  <div style="text-align: left">
+  <img src="images/items-bought.png" alt="Home Page" style="width: 70%">
+  </div>
+
+  - Items can be marked as purchased.
